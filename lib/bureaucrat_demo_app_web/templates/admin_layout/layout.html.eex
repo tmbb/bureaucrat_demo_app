@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<%#
+This is a starter template page. Use this page to start your new project from
+scratch. This page gets rid of all links and provides the needed markup only.
+%>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <title>Bureaucrat | Starter</title>
+  <%# Tell the browser to be responsive to screen width %>
+  <meta content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" name="viewport">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/css/bootstrap.min.css">
+  <%# Font Awesome %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+  <%# Ionicons %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/ionicons/4.4.1/css/ionicons.min.css">
+  <%# Theme style %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.8/css/AdminLTE.min.css">
+  <%# AdminLTE Skins. We have chosen the skin-blue for this starter
+        page. However, you can choose any other skin. Make sure you
+        apply the skin class to the body tag so the changes take effect. %>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.8/css/skins/_all-skins.min.css">
+
+  <%# Google Font %>
+  <link rel="stylesheet"
+        href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700,300italic,400italic,600italic">
+</head>
+<%#
+BODY TAG OPTIONS:
+=================
+Apply one or more of the following classes to get the
+desired effect
+|---------------------------------------------------------|
+| SKINS         | skin-blue                               |
+|               | skin-black                              |
+|               | skin-purple                             |
+|               | skin-yellow                             |
+|               | skin-red                                |
+|               | skin-green                              |
+|---------------------------------------------------------|
+|LAYOUT OPTIONS | fixed                                   |
+|               | layout-boxed                            |
+|               | layout-top-nav                          |
+|               | sidebar-collapse                        |
+|               | sidebar-mini                            |
+|---------------------------------------------------------|
+%>
+<body class="hold-transition skin-blue sidebar-mini">
+<div class="wrapper">
+  <header class="main-header">
+    <%= render BureaucratDemoAppWeb.AdminLayoutView, "main-header.html", assigns %>
+  </header>
+
+  <%# Left sidebar %>
+  <aside class="main-sidebar">
+    <section class="sidebar">
+      <%= render BureaucratDemoAppWeb.AdminLayoutView, "sidebar.html", assigns %>
+    </section>
+  </aside>
+
+  <%# Page content %>
+  <div class="content-wrapper">
+    <%= render @view_module, @view_template, assigns %>
+  </div>
+
+  <footer class="main-footer">
+    <div class="pull-right hidden-xs">
+      Anything you want
+    </div>
+    <strong>Copyright &copy; 2018 <a href="#">Company</a>.</strong> All rights reserved.
+  </footer>
+
+  <div class="control-sidebar-bg">
+  </div>
+</div>
+
+<%# REQUIRED JS SCRIPTS %>
+<%# Phoenix's Javascript so that "delete links" work as they should %>
+<script src="<%= Routes.static_path(@conn, "/js/app.js") %>"></script>
+<%# jQuery 3 %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+<%# Bootstrap 3.3.7 %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<%# AdminLTE App %>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/admin-lte/2.4.8/js/adminlte.min.js"></script>
+
+<link href="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/css/select2.min.css" rel="stylesheet" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+<script>
+// In your Javascript (external .js resource or <script> tag)
+$(document).ready(function() {
+  $('[data-forage-select2-widget="true"]').each(
+    function(index, node) {
+      // Extract configuration options from the HTML element
+      var baseUrl = node.dataset.url;
+      var field = node.dataset.field;
+      // Next, we create some extra storage to help us convert offset-based pagination
+      // into cursor-based pagination.
+      //
+      // With offset-based pagination, the pages are numbered (i.e. 1, 2, 3...).
+      // On the other hand, with cursor-based pagination, we have only an abstract token,
+      // which serves as a link to the next page.
+      //
+      // To convert page numbers to tokens, we simply define a map that stores the token
+      // for every page number.
+      // That way, Select2 can continue to ask for page number 1, 2, 3, etc. because we
+      // know how to convert the page number into out tokens
+      var lastTerm = "";
+      var pageToAfterToken = {1: null};
+      // Turn the node into a select2 box
+      $(node).select2({
+        // Use AJAX to get JSON data from the server
+        ajax: {
+        url: baseUrl,
+        data: function (params) {
+          var page = params.page || 1;
+          var term = params.term || "";
+          // Build the query
+          var query = {};
+          query["_search[" + field + "][op]"] = "contains";
+          query["_search[" + field + "][val]"] = term;
+          // If we don't have a token or if the query string has changed,
+          // we don't want to reuse the pagination token.
+          var afterToken = pageToAfterToken[page];
+          if(afterToken && lastTerm == term) {
+            query["_pagination[after]"] = afterToken;
+          }
+
+          // Query parameters will be ?search=[term]&type=public
+          return query;
+        },
+        processResults: function (data, params) {
+          var page = params.page || 1
+          lastTerm = params.term || "";
+          // With the request for the current page we also receive
+          // the token for the next page
+          pageToAfterToken[page + 1] = data.pagination.after;
+          return data;
+        },
+        dataType: 'json',
+        placeholder: "..."
+      }
+    });
+  })
+});
+</script>
+
+<%# Optionally, you can add Slimscroll and FastClick plugins.
+     Both of these plugins are recommended to enhance the
+     user experience. %>
+</body>
+</html>
